@@ -130,8 +130,8 @@
            (:array `(uffi-array ,(convert-uffi-type (second uffi-type))
                                 ,(third uffi-type)))
            (:union (second uffi-type))
-           (:struct (convert-uffi-type (second uffi-type)))
-           (:struct-pointer :pointer))
+           (:struct `(:struct ,(convert-uffi-type (second uffi-type))))
+           (:struct-pointer `(:pointer (:struct ,(convert-uffi-type (second uffi-type))))))
          uffi-type))))
 
 (cffi:define-foreign-type uffi-array-type ()
@@ -234,7 +234,7 @@ field-name"
 
 (defmacro get-slot-value (obj type field)
   "Access a slot value from a structure."
-  `(%foreign-slot-value ,obj ,type ,field))
+  `(%foreign-slot-value ,obj ',(convert-uffi-type type) ,field))
 
 ;; UFFI uses a different function when accessing a slot whose
 ;; type is a pointer. We don't need that in CFFI so we use
@@ -483,7 +483,7 @@ library type if type is not specified."
 
 (defun load-foreign-library (filename &key module supporting-libraries
                              force-load)
-  #+(or allegro mcl sbcl clisp) (declare (ignore module supporting-libraries))
+  #+(or allegro mcl sbcl clisp openmcl) (declare (ignore module supporting-libraries))
   #+(or cmu scl sbcl) (declare (ignore module))
 
   (when (and filename (or (null (pathname-directory filename))
